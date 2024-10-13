@@ -1,0 +1,13 @@
+<changeSet id="create_author_table" author="your_name">
+    <createTable tableName="author">
+        <column name="id" type="serial">
+            <constraints primaryKey="true" nullable="false"/>
+        </column>
+        <column name="fio" type="varchar(255)">
+            <constraints nullable="false"/>
+        </column>
+        <column name="creation_date" type="timestamp">
+            <constraints nullable="false"/>
+        </column>
+    </createTable>
+</changeSet>

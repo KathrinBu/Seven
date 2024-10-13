@@ -10,6 +10,10 @@ import org.junit.Assert
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 class BudgetApiKtTest : ServerTest() {
 
     @BeforeEach
@@ -26,61 +30,81 @@ class BudgetApiKtTest : ServerTest() {
         addRecord(BudgetRecord(2020, 5, 40, BudgetType.Приход))
         addRecord(BudgetRecord(2030, 1, 1, BudgetType.Расход))
 
-        RestAssured.given()
+        BudgetYearStatsResponse response = RestAssured . given ()
             .queryParam("limit", 3)
             .queryParam("offset", 1)
             .get("/budget/year/2020/stats")
-            .toResponse<BudgetYearStatsResponse>().let { response ->
-                println("${response.total} / ${response.items} / ${response.totalByType}")
+            .as(BudgetYearStatsResponse.class);
 
-                Assert.assertEquals(5, response.total)
-                Assert.assertEquals(3, response.items.size)
-                Assert.assertEquals(105, response.totalByType[BudgetType.Приход.name])
-            }
+        System.out.println(response.getTotal() + " / " + response.getItems() + " / " + response.getTotalByType());
+
+        Assert.assertEquals(5, response.getTotal())
+        Assert.assertEquals(3, response.getItems().size())
+        Assert.assertEquals(105, response.getTotalByType().get(BudgetType.ПРИХОД.name()))
     }
 
-    @Test
-    fun testStatsSortOrder() {
-        addRecord(BudgetRecord(2020, 5, 100, BudgetType.Приход))
-        addRecord(BudgetRecord(2020, 1, 5, BudgetType.Приход))
-        addRecord(BudgetRecord(2020, 5, 50, BudgetType.Приход))
-        addRecord(BudgetRecord(2020, 1, 30, BudgetType.Приход))
-        addRecord(BudgetRecord(2020, 5, 400, BudgetType.Приход))
-
-        // expected sort order - month ascending, amount descending
-
+    private void addRecord(BudgetRecord record)
+    {
         RestAssured.given()
-            .get("/budget/year/2020/stats?limit=100&offset=0")
-            .toResponse<BudgetYearStatsResponse>().let { response ->
-                println(response.items)
-
-                Assert.assertEquals(30, response.items[0].amount)
-                Assert.assertEquals(5, response.items[1].amount)
-                Assert.assertEquals(400, response.items[2].amount)
-                Assert.assertEquals(100, response.items[3].amount)
-                Assert.assertEquals(50, response.items[4].amount)
-            }
-    }
-
-    @Test
-    fun testInvalidMonthValues() {
-        RestAssured.given()
-            .jsonBody(BudgetRecord(2020, -5, 5, BudgetType.Приход))
+            .body(record)
             .post("/budget/add")
-            .then().statusCode(400)
-
-        RestAssured.given()
-            .jsonBody(BudgetRecord(2020, 15, 5, BudgetType.Приход))
-            .post("/budget/add")
-            .then().statusCode(400)
+            .then()
+            .statusCode(200);
     }
+}
 
-    private fun addRecord(record: BudgetRecord) {
-        RestAssured.given()
-            .jsonBody(record)
-            .post("/budget/add")
-            .toResponse<BudgetRecord>().let { response ->
-                Assert.assertEquals(record, response)
-            }
+@Test
+fun testStatsSortOrder() {
+    addRecord(BudgetRecord(2020, 5, 100, BudgetType.Приход))
+    addRecord(BudgetRecord(2020, 1, 5, BudgetType.Приход))
+    addRecord(BudgetRecord(2020, 5, 50, BudgetType.Приход))
+    addRecord(BudgetRecord(2020, 1, 30, BudgetType.Приход))
+    addRecord(BudgetRecord(2020, 5, 400, BudgetType.Приход))
+
+    // expected sort order - month ascending, amount descending
+
+    BudgetYearStatsResponse response = RestAssured . given ()
+        .queryParam("limit", 100)
+        .queryParam("offset", 0)
+        .get("/budget/year/2020/stats")
+        .as(BudgetYearStatsResponse.class);
+
+    List<BudgetRecord> items = response . getItems ();
+    System.out.println(items);
+
+    Assert.assertEquals(30, items.get(0).getAmount());
+    Assert.assertEquals(5, items.get(1).getAmount());
+    Assert.assertEquals(400, items.get(2).getAmount());
+    Assert.assertEquals(100, items.get(3).getAmount());
+    Assert.assertEquals(50, items.get(4).getAmount());
     }
+private void addRecord(BudgetRecord record) {
+    RestAssured.given()
+        .body(record)
+        .post("/budget/add")
+        .then()
+        .statusCode(200);
+}
+
+@Test
+fun testInvalidMonthValues() {
+    RestAssured.given()
+        .jsonBody(BudgetRecord(2020, -5, 5, BudgetType.Приход))
+        .post("/budget/add")
+        .then().statusCode(400)
+
+    RestAssured.given()
+        .jsonBody(BudgetRecord(2020, 15, 5, BudgetType.Приход))
+        .post("/budget/add")
+        .then().statusCode(400)
+}
+
+private fun addRecord(record: BudgetRecord) {
+    RestAssured.given()
+        .jsonBody(record)
+        .post("/budget/add")
+        .toResponse<BudgetRecord>().let { response ->
+            Assert.assertEquals(record, response)
+        }
+}
 }

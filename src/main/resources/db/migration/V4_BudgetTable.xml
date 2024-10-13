@@ -1,0 +1,13 @@
+<changeSet id="add_author_reference_to_budget" author="your_name">
+    <addColumn tableName="budget">
+        <column name="author_id" type="int">
+            <constraints nullable="true"/>
+        </column>
+    </addColumn>
+
+    <addForeignKeyConstraint baseTableName="budget"
+                             baseColumnNames="author_id"
+                             referencedTableName="author"
+                             referencedColumnNames="id"
+                             constraintName="fk_budget_author"/>
+</changeSet>

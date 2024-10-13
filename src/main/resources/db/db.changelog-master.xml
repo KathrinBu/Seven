@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <include file="V1_budget.xml" relativeToChangelogFile="true"/>
+    <include file="V2_replace_commission_with_expense.xml" relativeToChangelogFile="true"/>
+    <include file="V3_author.xml" relativeToChangelogFile="true"/>
+    <include file="V4_budgettable.xml" relativeToChangelogFile="true"/>
+</databaseChangeLog>
